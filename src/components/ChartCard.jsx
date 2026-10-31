@@ -16,7 +16,7 @@ export default function ChartCard({ title, subtitle, actions = [], children, foo
   }, [open]);
 
   return (
-    <section className={`min-w-0 rounded-xl border border-line bg-white p-3 shadow-sm sm:p-4 ${className}`} aria-label={title}>
+    <section className={`min-w-0 rounded-xl border border-line bg-white p-2.5 shadow-sm sm:p-3 ${className}`} aria-label={title}>
       <header className="mb-2 flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <h3 className="text-[15px] font-semibold text-ink">{title}</h3>

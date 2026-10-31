@@ -3,7 +3,7 @@ import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 export default function KpiCard({ label, value, change, unit = '%', changeLabel, icon: Icon }) {
   const positive = change >= 0;
   return (
-    <div className="rounded-xl border border-line bg-white p-3 shadow-sm sm:p-4">
+    <div className="rounded-xl border border-line bg-white p-3 shadow-sm sm:p-3.5">
       <div className="flex items-start justify-between gap-2">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">{label}</p>
         {Icon && (
@@ -12,7 +12,7 @@ export default function KpiCard({ label, value, change, unit = '%', changeLabel,
           </span>
         )}
       </div>
-      <p className="mt-1.5 text-xl font-semibold tracking-tight text-ink tabular-nums sm:text-2xl">{value}</p>
+      <p className="mt-1.5 text-lg font-semibold tracking-tight text-ink tabular-nums sm:text-xl">{value}</p>
       <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-xs">
         <span className={`inline-flex items-center font-semibold ${positive ? 'text-emerald-600' : 'text-red-600'}`}>
           {positive ? <ArrowUpRight className="size-3.5" aria-hidden="true" /> : <ArrowDownRight className="size-3.5" aria-hidden="true" />}

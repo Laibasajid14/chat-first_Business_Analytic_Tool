@@ -250,12 +250,11 @@ export default function DashboardPage() {
   ];
 
   const renderDefaultChart = (chart) => {
-    const spanClass = chart.id === 'revenue-time' ? 'md:col-span-2' : '';
     if (chart.id === 'revenue-time') {
       return (
-        <ChartCard key={chart.id} className={spanClass} title={chart.title} subtitle={`Daily revenue after discounts · ${scope}`} actions={defaultActions(chart)}>
+        <ChartCard key={chart.id} title={chart.title} subtitle={`Daily revenue after discounts · ${scope}`} actions={defaultActions(chart)}>
           <div role="img" aria-label={`Line chart of daily revenue, ${scope}. Total ${formatCurrency(kpis.revenue)}.`}>
-            <InsightChart data={daily} type="line" xKey="label" yKey="revenue" height={200} />
+            <InsightChart data={daily} type="line" xKey="label" yKey="revenue" height={180} />
           </div>
         </ChartCard>
       );
@@ -318,7 +317,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="pb-bottom-nav mx-auto max-w-[1400px] px-4 pt-4 sm:px-6 lg:px-8 lg:pt-5">
+    <div className="pb-bottom-nav mx-auto max-w-[1200px] px-4 pt-3 sm:px-6 lg:px-8 lg:pt-4">
       {/* Header */}
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
