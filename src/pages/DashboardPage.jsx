@@ -36,12 +36,12 @@ function DrillDownModal({ drill, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">Drill down</p>
             <h2 id="drill-title" className="mt-1 text-lg font-semibold">{drill.title}</h2>
             <p className="text-sm text-muted">{drill.subtitle}</p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close drill down" className="grid size-11 place-items-center rounded-lg hover:bg-slate-100">
+          <button type="button" onClick={onClose} aria-label="Close drill down" className="grid size-11 shrink-0 place-items-center rounded-lg hover:bg-slate-100">
             <X className="size-5" aria-hidden="true" />
           </button>
         </div>
@@ -171,7 +171,7 @@ export default function DashboardPage() {
     dashboardConfig, removeDashboardChart, restoreDashboardChart, resetDashboard,
   } = useAppState();
   const [rangeKey, setRangeKey] = useState('month');
-  const [region, setRegion] = useState('All Regions');
+  const [region, setRegion] = useState(regions);
   const [refreshing, setRefreshing] = useState(false);
   const [drill, setDrill] = useState(null);
   const [customizeOpen, setCustomizeOpen] = useState(false);
@@ -185,7 +185,10 @@ export default function DashboardPage() {
   const regionData = useMemo(() => revenueByRegion(selectRows(outputRows, { ...range })), [outputRows, range]);
   const categoryData = useMemo(() => revenueByCategory(rows), [rows]);
 
-  const scope = `${range.label}${region !== 'All Regions' ? ` · ${region}` : ''}`;
+  const allRegionsSelected = region.length === regions.length && regions.every((item) => region.includes(item));
+  const scope = allRegionsSelected
+    ? range.label
+    : `${range.label} · ${region.length ? region.join(', ') : 'No regions'}`;
 
   const refresh = () => {
     setRefreshing(true);
@@ -200,11 +203,30 @@ export default function DashboardPage() {
       const data = weeklyRevenue(rows).filter((w) => w.value > 0);
       setDrill({ title: 'Revenue by Week', subtitle: scope, dimension: 'Week', data, total: kpis.revenue });
     } else if (kind === 'region') {
-      const data = revenueByStore(selectRows(outputRows, { ...range, region: selectedRegion }), selectedRegion === 'All Regions' ? undefined : selectedRegion);
-      setDrill({ title: `Revenue by Store${selectedRegion !== 'All Regions' ? ` · ${selectedRegion}` : ''}`, subtitle: range.label, dimension: 'Store', data, total: data.reduce((s, d) => s + d.value, 0) });
+      const selectedRegions = Array.isArray(selectedRegion)
+        ? selectedRegion
+        : selectedRegion === 'All Regions' ? regions : [selectedRegion];
+      const regionLabel = selectedRegions.length === regions.length ? '' : selectedRegions.join(', ');
+      const data = revenueByStore(
+        selectRows(outputRows, { ...range, region: selectedRegions }),
+        selectedRegions,
+      );
+      setDrill({
+        title: `Revenue by Store${regionLabel ? ` · ${regionLabel}` : ''}`,
+        subtitle: range.label,
+        dimension: 'Store',
+        data,
+        total: data.reduce((s, d) => s + d.value, 0),
+      });
     } else {
       const data = revenueByProduct(rows);
-      setDrill({ title: 'Revenue by Product', subtitle: scope, dimension: 'Product', data, total: kpis.revenue });
+      setDrill({
+        title: 'Revenue by Product',
+        subtitle: scope,
+        dimension: 'Product',
+        data,
+        total: kpis.revenue,
+      });
     }
   };
 
@@ -264,9 +286,9 @@ export default function DashboardPage() {
       return (
         <ChartCard key={chart.id} title={chart.title} subtitle={`${range.label} · North, South and Central`} actions={defaultActions(chart)}>
           <div role="img" aria-label={`Bar chart of revenue by region: ${regionData.map((item) => `${item.name} ${formatCurrency(item.value)}`).join(', ')}`}>
-            <InsightChart data={regionData.map((item) => ({ ...item, dim: region !== 'All Regions' && item.name !== region }))} type="bar" height={190} />
+            <InsightChart data={regionData.map((item) => ({ ...item, dim: !region.includes(item.name) }))} type="bar" height={190} />
           </div>
-          {region !== 'All Regions' && <p className="mt-2 text-xs text-muted">Showing all regions for comparison; KPIs are filtered to {region}.</p>}
+            {!allRegionsSelected && <p className="mt-2 text-xs text-muted">Showing all regions for comparison; KPIs are filtered to {region.length ? region.join(', ') : 'no regions'}.</p>}
         </ChartCard>
       );
     }

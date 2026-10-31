@@ -248,7 +248,7 @@ export const dateRanges = [
   { key: '7d', label: 'Last 7 Days', start: '2026-10-24', end: '2026-10-30', prevStart: '2026-10-17', prevEnd: '2026-10-23', prevLabel: 'vs previous 7 days' },
 ];
 
-export const regions = ['All Regions', 'North', 'South', 'Central'];
+export const regions = ['North', 'South', 'Central'];
 
 // September has no transaction file in this prototype, so the month
 // comparison uses this precomputed summary from the September run.
@@ -317,7 +317,8 @@ export function runPipeline(filter = defaultFilter) {
 
 export function selectRows(rows, { start, end, region = 'All Regions' }) {
   return rows.filter(
-    (r) => r.date >= start && r.date <= end && (region === 'All Regions' || r.region === region),
+    (r) => r.date >= start && r.date <= end
+      && (Array.isArray(region) ? region.includes(r.region) : region === 'All Regions' || r.region === region),
   );
 }
 
@@ -340,12 +341,22 @@ export function computeKpis(rows) {
 
 export function previousKpis(rows, range, region) {
   if (range.prevStart) return computeKpis(selectRows(rows, { start: range.prevStart, end: range.prevEnd, region }));
-  const keys = region === 'All Regions' ? Object.keys(septemberSummary) : [region];
+  const selectedRegions = Array.isArray(region)
+    ? region
+    : region === 'All Regions' ? [] : [region];
+  const keys = Array.isArray(region)
+    ? selectedRegions
+    : region === 'All Regions' ? Object.keys(septemberSummary) : selectedRegions;
   const sum = (f) => keys.reduce((s, k) => s + septemberSummary[k][f], 0);
   const revenue = sum('revenue');
   const orders = sum('orders');
   const grossProfit = sum('grossProfit');
-  return { revenue, orders, aov: revenue / orders, margin: (grossProfit / revenue) * 100 };
+  return {
+    revenue,
+    orders,
+    aov: orders ? revenue / orders : 0,
+    margin: revenue ? (grossProfit / revenue) * 100 : 0,
+  };
 }
 
 export function dailyRevenue(rows, start, end) {
@@ -376,7 +387,9 @@ export const revenueByStore = (rows, region) =>
   groupSum(
     rows,
     'store_name',
-    stores.filter((s) => !region || s.region === region).map((s) => s.store_name),
+    stores.filter((s) => !region
+      || (Array.isArray(region) ? region.includes(s.region) : s.region === region))
+      .map((s) => s.store_name),
   ).sort((a, b) => b.value - a.value);
 export const revenueByProduct = (rows, category) =>
   groupSum(

@@ -1,7 +1,7 @@
 import { Calendar, MapPin, RefreshCw } from 'lucide-react';
 import DropdownSelect from './DropdownSelect.jsx';
 
-function Select({ id, label, icon: Icon, value, onChange, options }) {
+function Select({ id, label, icon: Icon, value, onChange, options, multiple = false, allSelectedLabel, placeholder }) {
   return (
     <DropdownSelect
       id={id}
@@ -10,6 +10,9 @@ function Select({ id, label, icon: Icon, value, onChange, options }) {
       icon={Icon}
       onChange={onChange}
       options={options}
+      multiple={multiple}
+      allSelectedLabel={allSelectedLabel}
+      placeholder={placeholder}
       wrapperClassName="min-w-0 flex-1 sm:flex-none sm:w-44 xl:w-36 2xl:w-40"
       buttonClassName="font-medium"
     />
@@ -20,7 +23,7 @@ export default function FilterBar({ range, onRangeChange, rangeOptions, region, 
   return (
     <div className="flex w-full flex-wrap items-center gap-2 sm:w-full sm:flex-nowrap xl:w-auto">
       <Select id="date-range" label="Date range" icon={Calendar} value={range} onChange={onRangeChange} options={rangeOptions} />
-      <Select id="region" label="Region" icon={MapPin} value={region} onChange={onRegionChange} options={regionOptions} />
+      <Select id="region" label="Region" icon={MapPin} value={region} onChange={onRegionChange} options={regionOptions} multiple allSelectedLabel="All Regions" placeholder="No regions" />
       <button
         type="button"
         onClick={onRefresh}

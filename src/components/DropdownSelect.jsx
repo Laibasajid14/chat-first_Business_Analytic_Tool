@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { Check, ChevronDown } from 'lucide-react';
 
 export default function DropdownSelect({
   id,
@@ -12,6 +12,8 @@ export default function DropdownSelect({
   wrapperClassName = '',
   buttonClassName = '',
   menuClassName = '',
+  multiple = false,
+  allSelectedLabel,
 }) {
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -19,8 +21,16 @@ export default function DropdownSelect({
   const rootRef = useRef(null);
   const triggerRef = useRef(null);
   const optionRefs = useRef([]);
-  const selectedIndex = options.findIndex((option) => option.value === value);
+  const selectedIndex = multiple
+    ? options.findIndex((option) => value.includes(option.value))
+    : options.findIndex((option) => option.value === value);
   const selectedOption = selectedIndex >= 0 ? options[selectedIndex] : null;
+  const selectedOptions = multiple ? options.filter((option) => value.includes(option.value)) : [];
+  const selectionLabel = multiple
+    ? allSelectedLabel && selectedOptions.length === options.length
+      ? allSelectedLabel
+      : selectedOptions.map((option) => option.label).join(', ') || placeholder || ''
+    : selectedOption?.label ?? placeholder ?? '';
   const triggerId = `${id}-${generatedId}`;
   const listId = `${triggerId}-options`;
 
@@ -43,6 +53,14 @@ export default function DropdownSelect({
   };
 
   const selectOption = (option) => {
+    if (multiple) {
+      const nextValues = value.includes(option.value)
+        ? value.filter((selectedValue) => selectedValue !== option.value)
+        : [...value, option.value];
+      onChange(nextValues);
+      return;
+    }
+
     onChange(option.value);
     setOpen(false);
     triggerRef.current?.focus();
@@ -86,7 +104,7 @@ export default function DropdownSelect({
         ref={triggerRef}
         id={triggerId}
         type="button"
-        aria-label={`${label}${selectedOption ? `: ${selectedOption.label}` : ''}`}
+        aria-label={`${label}: ${selectionLabel}`}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={listId}
@@ -95,7 +113,7 @@ export default function DropdownSelect({
         className={`relative flex h-11 w-full min-w-0 items-center justify-between gap-2 rounded-lg border border-line bg-white px-3 text-left text-sm text-ink shadow-sm hover:border-slate-300 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 ${Icon ? 'pl-8' : ''} ${buttonClassName}`}
       >
         {Icon && <Icon className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />}
-        <span className="min-w-0 flex-1 truncate">{selectedOption?.label ?? placeholder ?? ''}</span>
+        <span className="min-w-0 flex-1 truncate">{selectionLabel}</span>
         <ChevronDown className="size-4 shrink-0 text-slate-400" aria-hidden="true" />
       </button>
       {open && (
@@ -111,16 +129,21 @@ export default function DropdownSelect({
               ref={(element) => { optionRefs.current[index] = element; }}
               type="button"
               role="option"
-              aria-selected={option.value === value}
+              aria-selected={multiple ? value.includes(option.value) : option.value === value}
               title={option.label}
               onClick={() => selectOption(option)}
               onKeyDown={(event) => handleOptionKeyDown(event, index)}
               onFocus={() => setActiveIndex(index)}
-              className={`block w-full min-w-0 truncate rounded-md px-3 py-2 text-left text-sm ${
-                option.value === value ? 'bg-blue-50 font-medium text-blue-700' : 'text-slate-700 hover:bg-slate-50'
+              className={`flex w-full min-w-0 items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-sm ${
+                (multiple ? value.includes(option.value) : option.value === value)
+                  ? 'bg-blue-50 font-medium text-blue-700'
+                  : 'text-slate-700 hover:bg-slate-50'
               }`}
             >
-              {option.label}
+              <span className="truncate">{option.label}</span>
+              {multiple && value.includes(option.value) && (
+                <Check className="size-4 shrink-0" aria-hidden="true" />
+              )}
             </button>
           ))}
         </div>
