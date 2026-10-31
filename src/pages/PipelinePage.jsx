@@ -45,6 +45,20 @@ const inputCls = 'h-11 w-full rounded-lg border border-line bg-white px-3 text-[
 function StepEditor({ step, draft, onApply, onCancel, outputCount, mobile }) {
   const [form, setForm] = useState(draft);
   useEffect(() => setForm(draft), [draft, step.id]);
+  useEffect(() => {
+    if (!mobile) return undefined;
+
+    const { body, documentElement } = document;
+    const previousBodyOverflow = body.style.overflow;
+    const previousDocumentOverflow = documentElement.style.overflow;
+    body.style.overflow = 'hidden';
+    documentElement.style.overflow = 'hidden';
+
+    return () => {
+      body.style.overflow = previousBodyOverflow;
+      documentElement.style.overflow = previousDocumentOverflow;
+    };
+  }, [mobile]);
 
   const editable = step.id === 'filter' || step.id === 'join';
   const dirty = !sameFilter(form.filter, draft.filter) || form.joinType !== draft.joinType;
